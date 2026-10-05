@@ -1,0 +1,371 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Locus",
+    "description": "Kenyan reverse-geocoding service backed by PostGIS",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/v1/geocode/reverse": {
+      "get": {
+        "summary": "Reverse Geocode",
+        "description": "Single-point reverse geocode.",
+        "operationId": "reverse_geocode_v1_geocode_reverse_get",
+        "parameters": [
+          {
+            "name": "lat",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 90,
+              "minimum": -90,
+              "title": "Lat"
+            }
+          },
+          {
+            "name": "lon",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 180,
+              "minimum": -180,
+              "title": "Lon"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "X-Api-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeocodeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/geocode/reverse/batch": {
+      "post": {
+        "summary": "Reverse Geocode Batch",
+        "description": "Batch reverse geocode (capped at ``MAX_BATCH_SIZE``).",
+        "operationId": "reverse_geocode_batch_v1_geocode_reverse_batch_post",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "X-Api-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchGeocodeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GeocodeResponse"
+                  },
+                  "title": "Response Reverse Geocode Batch V1 Geocode Reverse Batch Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/boundaries/version": {
+      "get": {
+        "summary": "Get Boundary Version",
+        "description": "Return the active ``boundary_version`` and ``effective_from`` date.",
+        "operationId": "get_boundary_version_v1_boundaries_version_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/health": {
+      "get": {
+        "summary": "Health",
+        "description": "Liveness/readiness probe — 200 once DB and cache are reachable.",
+        "operationId": "health_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Health V1 Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BatchGeocodeRequest": {
+        "properties": {
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/GeocodeRequest"
+            },
+            "type": "array",
+            "title": "Points"
+          }
+        },
+        "type": "object",
+        "required": [
+          "points"
+        ],
+        "title": "BatchGeocodeRequest",
+        "description": "Request body for batch reverse geocode."
+      },
+      "GeocodeRequest": {
+        "properties": {
+          "lat": {
+            "type": "number",
+            "maximum": 90,
+            "minimum": -90,
+            "title": "Lat",
+            "description": "Latitude (WGS 84)"
+          },
+          "lon": {
+            "type": "number",
+            "maximum": 180,
+            "minimum": -180,
+            "title": "Lon",
+            "description": "Longitude (WGS 84)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lat",
+          "lon"
+        ],
+        "title": "GeocodeRequest",
+        "description": "Query-parameter model for a single-point reverse geocode."
+      },
+      "GeocodeResponse": {
+        "properties": {
+          "county_name": {
+            "type": "string",
+            "title": "County Name"
+          },
+          "constituency": {
+            "type": "string",
+            "title": "Constituency"
+          },
+          "ward_name": {
+            "type": "string",
+            "title": "Ward Name"
+          },
+          "sub_county_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub County Name"
+          },
+          "location_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Name"
+          },
+          "sub_location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sub Location"
+          },
+          "match_type": {
+            "$ref": "#/components/schemas/MatchType"
+          },
+          "distance_m": {
+            "type": "number",
+            "title": "Distance M"
+          },
+          "boundary_version": {
+            "type": "string",
+            "title": "Boundary Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "county_name",
+          "constituency",
+          "ward_name",
+          "match_type",
+          "distance_m",
+          "boundary_version"
+        ],
+        "title": "GeocodeResponse",
+        "description": "Response body for a reverse-geocode hit."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "MatchType": {
+        "type": "string",
+        "enum": [
+          "exact",
+          "nearest"
+        ],
+        "title": "MatchType",
+        "description": "Wire-format match type: ``\"exact\"`` or ``\"nearest\"``."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VersionResponse": {
+        "properties": {
+          "boundary_version": {
+            "type": "string",
+            "title": "Boundary Version"
+          },
+          "effective_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective From"
+          }
+        },
+        "type": "object",
+        "required": [
+          "boundary_version"
+        ],
+        "title": "VersionResponse",
+        "description": "Response body for ``GET /boundaries/version``."
+      }
+    }
+  }
+}

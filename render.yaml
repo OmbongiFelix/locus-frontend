@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: locus-frontend
+    runtime: static
+    buildCommand: npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /api-proxy/*
+        destination: https://locus-xhvj.onrender.com/:splat
