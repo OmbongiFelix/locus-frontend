@@ -64,7 +64,7 @@ export default function EndpointPlayground({
   const [responseState, setResponseState] = useState(null);
   const [activeTab, setActiveTab] = useState('response'); // 'response' | 'headers' | 'snippets'
   const [activeSnippetTab, setActiveSnippetTab] = useState('curl'); // 'curl' | 'js' | 'python'
-  const [useProxy, setUseProxy] = useState(true); // Dev proxy to bypass browser CORS preflight restrictions
+  const [useProxy, setUseProxy] = useState(false); // Dev proxy to bypass browser CORS preflight restrictions (local dev only)
 
   // Construct target URL with query params
   const computedRequestUrl = useMemo(() => {
